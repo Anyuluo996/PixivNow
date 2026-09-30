@@ -1,6 +1,11 @@
 packages:
   - .
 
+# pnpm >= 11.28 defaults this to 1440 (24h) and then rejects lockfiles
+# carrying freshly-published packages, which breaks `nuxt build` (it runs
+# an internal pnpm install) and Vercel deploys right after upstream bumps.
+minimumReleaseAge: 0
+
 allowBuilds:
   '@parcel/watcher': true
   esbuild: true
