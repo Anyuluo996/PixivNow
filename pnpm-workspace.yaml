@@ -6,8 +6,9 @@ allowBuilds:
   esbuild: true
 
 overrides:
-  '@intlify/shared': 11.4.10
-  '@intlify/core-base': 11.4.10
-  '@intlify/message-compiler': 11.4.10
-  '@intlify/devtools-types': 11.4.10
-  '@intlify/core': 11.4.10
+  'vue-i18n': 11.4.12
+  '@intlify/shared': 11.4.12
+  '@intlify/core-base': 11.4.12
+  '@intlify/message-compiler': 11.4.12
+  '@intlify/devtools-types': 11.4.12
+  '@intlify/core': 11.4.12
