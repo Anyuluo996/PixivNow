@@ -24,11 +24,52 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: status, data })
   }
 
-  const illusts = ((data as { illusts?: ArtworkOrAd[] }).illusts ?? []).filter(
+  let illusts = ((data as { illusts?: ArtworkOrAd[] }).illusts ?? []).filter(
     (value): value is Artwork => Object.keys(value).includes('id')
   )
 
+  // Anonymous requests get an ads-only discovery payload from pixiv (login
+  // cookies are forwarded, so logged-in users are unaffected); fall back to
+  // probing random illust IDs through the anonymous-friendly detail endpoint.
+  if (!illusts.length) {
+    const wantR18 = query.mode === 'all'
+    for (let attempt = 0; attempt < 4 && !illusts.length; attempt++) {
+      const randomId = 20_000_000 + Math.floor(Math.random() * 118_000_000)
+      const detail = await pixivFetch({
+        event,
+        url: `/ajax/illust/${randomId}`,
+      })
+      const body = (detail.data as any)?.body
+      if (
+        detail.status !== 200 ||
+        body?.illustId == null ||
+        body?.urls?.regular == null
+      ) {
+        continue
+      }
+      if (!wantR18 && body.xRestrict !== 0) {
+        continue
+      }
+      illusts.push({
+        id: String(body.illustId),
+        updateDate: body.uploadDate,
+        urls: Object.fromEntries(
+          Object.entries(body.urls).map(([key, value]) => [
+            key,
+            String(value).replace(
+              /^https:\/\/i\.pximg\.net\//,
+              PXIMG_BASEURL_I
+            ),
+          ])
+        ),
+      } as unknown as Artwork)
+    }
+  }
+
   illusts.forEach((value) => {
+    if (value.urls?.regular) {
+      return // fallback probes already carry complete urls
+    }
     const middle = `img/${formatInTimeZone(
       value.updateDate,
       'Asia/Tokyo',
