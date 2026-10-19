@@ -48,7 +48,9 @@ export default defineEventHandler(async (event) => {
     if (!url) {
       throw createError({ statusCode: 404, message: 'No image found' })
     }
-    return sendRedirect(event, url)
+    // i.pximg.net 403s direct hits (hotlink protection); route through the
+    // site's own /-/ proxy, which rewrites the referer to pixiv.net
+    return sendRedirect(event, url.replace(/^https:\/\/i\.pximg\.net\//, '/-/'))
   } else {
     return illusts
   }
