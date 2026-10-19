@@ -1,6 +1,23 @@
 packages:
   - .
 
+# pnpm >= 11.28 defaults this to 1440 (24h) and then rejects lockfiles
+# carrying freshly-published packages, which breaks `nuxt build` (it runs
+# an internal pnpm install) and Vercel deploys right after upstream bumps.
+minimumReleaseAge: 0
+
 allowBuilds:
   '@parcel/watcher': true
   esbuild: true
+
+# Upstream's lockfile repeatedly ships a skewed intlify set (e.g. vue-i18n
+# 11.4.15/16 importing toDevtoolsGroupId from @intlify/shared 11.4.8, which
+# lacks it) and upstream has no enabled CI to catch it -> MISSING_EXPORT at
+# build. Pin the interlocked 11.4.x train to one version; bump the numbers
+# together whenever upstream bumps vue-i18n.
+overrides:
+  'vue-i18n': 11.4.16
+  '@intlify/shared': 11.4.16
+  '@intlify/core-base': 11.4.16
+  '@intlify/message-compiler': 11.4.16
+  '@intlify/devtools-types': 11.4.16
